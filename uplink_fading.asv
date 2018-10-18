@@ -13,14 +13,13 @@ g=4*h_B*h_m/lambda_c/1000;
 R_u=2:0.1:10;
 a=2;
 b=2;
-m_d=1; % m_d=1;m_d=2;m_d=3;
+m_d=3; % m_d=1;m_d=2;m_d=3;
 m_i=1; % m_i=1;m_i=2;m_i=3;
 m_I=m_i;
-t=3*10^5;
+t=10^5;
 rho=m_d+m_I*N_I;
 
 [ASE_min,ASE_max,ASE]=uplink(Ro,R,N_I,t,R_u,a,b,g);
-[ASE_min_fading,ASE_max_fading,ASE_fading]=fading(Ro,R,N_I,t,R_u,a,b,g,m_d,m_i);
 
 figure,
 plot(R_u,ASE_min,'b',R_u,ASE_max,'r',R_u,ASE,'g',R_u,ASE_min_fading,'--b',R_u,ASE_max_fading,'--r',R_u,ASE_fading,'--g');
@@ -88,7 +87,7 @@ ASE=mean(4./(pi.*D.^2).*log2(1+gamma_d));
 
 end
 
-function [ASE_min_fading,ASE_max_fading,ASE_fading]=fading(Ro,R,N_I,t,R_u,a,b,g,m_d,m_i)
+function [ASE_min,ASE_max,ASE]=uplink_fading(Ro,R,N_I,t,R_u,a,b,g)
 % the position of desired user
 u=rand(t,1);
 r=Ro+(R-Ro)*sqrt(u);
@@ -129,6 +128,8 @@ S_i_fading=zeros(t,max(size(D)),N_I);
 S_i_max_fading=zeros(t,max(size(D)),N_I);
 S_i_min_fading=zeros(t,max(size(D)),N_I);
 S_I=zeros(t,max(size(D)));
+S_I_max=zeros(t,max(size(D)));
+S_I_min=zeros(t,max(size(D)));
 S_I_fading=zeros(t,max(size(R_u)));
 S_I_max_fading=zeros(t,max(size(R_u)));
 S_I_min_fading=zeros(t,max(size(R_u)));
@@ -144,12 +145,16 @@ for n_i=1:N_I
     S_I_max_fading=S_I_max_fading+S_i_max_fading(:,:,n_i);
     S_I_min_fading=S_I_min_fading+S_i_min_fading(:,:,n_i);
 end
+gamma_d=S_d./S_I;
 gamma_d_fading=S_d_fading./S_I_fading;
 gamma_d_max_fading=S_d_fading./S_I_max_fading;
 gamma_d_min_fading=S_d_fading./S_I_min_fading;
 
 % calculate the ASE
+ASE_min=mean(4./(pi.*D.^2).*log2(1+gamma_d_min));
 ASE_min_fading=mean(4./(pi.*D.^2).*log2(1+gamma_d_min_fading));
+ASE_max=mean(4./(pi.*D.^2).*log2(1+gamma_d_max));
 ASE_max_fading=mean(4./(pi.*D.^2).*log2(1+gamma_d_max_fading));
+ASE=mean(4./(pi.*D.^2).*log2(1+gamma_d));
 ASE_fading=mean(4./(pi.*D.^2).*log2(1+gamma_d_fading));
 end

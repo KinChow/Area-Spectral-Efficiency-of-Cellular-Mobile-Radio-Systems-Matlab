@@ -17,7 +17,7 @@ a=2;
 b=2;
 sigma_d=4;
 sigma_I=4;
-t=10^5;
+t=3*10^5;
 
 D_1=R_u_1*R; % R_u for best
 D_2=R_u_2*R; % R_u for worst
@@ -27,7 +27,7 @@ r_min=D_2-R;
 [ASE_min_shadowing_up,ASE_min_shadowing_low]=ulb(Ro,t,R,D_2,r_min,xi,sigma_d,sigma_I,N_I,a,b,g);
 
 [ASE_min,ASE_max,ASE]=uplink_1(Ro,R,N_I,t,R_u_1,a,b,g);
-[ASE_min_shadowing,ASE_max_shadowing,ASE_shadowing]=uplink_shadowing(Ro,R,N_I,xi,t,R_u_1,a,b,g,sigma_d,sigma_I);
+[ASE_min_shadowing,ASE_max_shadowing,ASE_shadowing]=up_shadowing(Ro,R,N_I,xi,t,R_u_1,a,b,g,sigma_d,sigma_I);
 
 %plot
 figure,
@@ -68,6 +68,7 @@ m=size(mu_gamma_d_m);
 
 C_m_up=log2(exp(1))*(mu_gamma_d_m/xi+exp(-mu_gamma_d_m/xi+sigma_gamma_d^2/(2*xi^2)));
 
+C_m_low=zeros(m(1),m(2));
 for i=1:m(2)
     for j=1:m(1)
         C_m_low(j,i)=log2(exp(1))*(mu_gamma_d_m(j,i)./xi+Q(mu_gamma_d_m(j,i)./sigma_gamma_d)-exp(mu_gamma_d_m(j,i)/xi+sigma_gamma_d^2/(2*xi^2))*Q(mu_gamma_d_m(j,i)/sigma_gamma_d+sigma_gamma_d/xi));
@@ -96,6 +97,9 @@ end
 
 % the distance r_i from each cochannel interferer to the considered BS
 D=R_u*R; % R_u normalized reuse distance
+r_i=zeros(t,max(size(D)),N_I);
+r_min=zeros(t,max(size(D)));
+r_max=zeros(t,max(size(D)));
 for n_i=1:N_I
     r_i(:,:,n_i)=sqrt(D.^2+x(:,n_i).^2+2.*D.*x(:,n_i).*sin(theta(:,n_i)));
 end
@@ -109,6 +113,9 @@ end
 % the CIR of the desired user gamma_d
 % gamma_d range from 1/N_I*(R*(R-1)/r)^a*((g+(R_u-1)*R)/(g+r))^b to 1/N_I*(R*(R+1)/r)^a*((g+(R_u+1)*R)/(g+r))^b
 S_d=1./(r.^a.*(1+r/g).^b);
+S_i=zeros(t,max(size(D)),N_I);
+S_i_max=zeros(t,max(size(D)),N_I);
+S_i_min=zeros(t,max(size(D)),N_I);
 S_I=zeros(t,max(size(D)));
 S_I_max=zeros(t,max(size(D)));
 S_I_min=zeros(t,max(size(D)));
@@ -133,7 +140,7 @@ ASE=mean(4./(pi.*D.^2).*log2(1+gamma_d));
 end
 
 % ASE with shadowing
-function [ASE_min_shadowing,ASE_max_shadowing,ASE_shadowing]=uplink_shadowing(Ro,R,N_I,xi,t,R_u,a,b,g,sigma_d,sigma_I)
+function [ASE_min_shadowing,ASE_max_shadowing,ASE_shadowing]=up_shadowing(Ro,R,N_I,xi,t,R_u,a,b,g,sigma_d,sigma_I)
 % the position of desired user
 u=rand(t,1);
 r=Ro+(R-Ro)*sqrt(u);
@@ -150,6 +157,9 @@ end
 
 % the distance r_i from each cochannel interferer to the considered BS
 D=R_u*R; % R_u normalized reuse distance
+r_i=zeros(t,max(size(D)),N_I);
+r_min=zeros(t,max(size(D)));
+r_max=zeros(t,max(size(D)));
 for n_i=1:N_I
     r_i(:,:,n_i)=sqrt(D.^2+x(:,n_i).^2+2.*D.*x(:,n_i).*sin(theta(:,n_i)));
 end
@@ -164,6 +174,12 @@ end
 S_d=1./(r.^a.*(1+r/g).^b);
 mu_d=xi.*log(S_d);
 S_d_shadowing=lognrnd(mu_d./xi,sigma_d./xi);
+mu_I=zeros(t,max(size(D)),N_I);
+mu_I_max=zeros(t,max(size(D)),N_I);
+mu_I_min=zeros(t,max(size(D)),N_I);
+S_i=zeros(t,max(size(D)),N_I);
+S_i_max=zeros(t,max(size(D)),N_I);
+S_i_min=zeros(t,max(size(D)),N_I);
 S_I_shadowing=zeros(t,max(size(R_u)));
 S_I_max_shadowing=zeros(t,max(size(D)));
 S_I_min_shadowing=zeros(t,max(size(D)));
